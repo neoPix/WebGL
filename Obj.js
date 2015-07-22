@@ -8,15 +8,6 @@
 	};
 
 	Obj.prototype = {
-		init: function(){
-			this.vertexBuffer = this.gl.createBuffer();
-			this.vertexBuffer.itemSize = 3;
-			this.vertexBuffer.numItems = 3;
-
-			this.colorBuffer = this.gl.createBuffer();
-			this.colorBuffer.itemSize = 4;
-			this.colorBuffer.numItems = 3;
-		},
 		load: function(data){
 			if(data.vertexPositions){
 				this.vertexBuffer = this.gl.createBuffer();
