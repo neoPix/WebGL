@@ -1,0 +1,74 @@
+<html>
+	<body>
+		<canvas id="logo" height="600" width="600"></canvas>
+	</body>
+	<script src="glMatrix.js"></script>
+	<script src="Scene.js"></script>
+	<script src="Shader.js"></script>
+	<script src="Mesh.js"></script>
+	<script src="Obj.js"></script>
+
+	<script id="shader-fs" type="x-shader/x-fragment">
+		precision mediump float;
+
+		varying vec4 vColor;
+
+		void main(void) {
+			gl_FragColor = vColor;
+		}
+	</script>
+
+	<script id="shader-vs" type="x-shader/x-vertex">
+		attribute vec3 aVertexPosition;
+		attribute vec4 aVertexColor;
+
+		uniform mat4 uMVMatrix;
+		uniform mat4 uPMatrix;
+
+		varying vec4 vColor;
+
+		void main(void) {
+			gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+			vColor = aVertexColor;
+		}
+	</script>
+
+
+	<script>
+		try{
+			var canvas = document.getElementById("logo"),
+				scene = new Scene(canvas);
+
+			var shader = scene.getShaderFromId("shader-vs", "shader-fs"),
+				mesh = scene.getMesh("Objects/Pyramid.json", shader),
+				mesh2 = scene.getMesh("Objects/Pyramid.json", shader),
+				mesh3 = scene.getMesh("Objects/Pyramid.json", shader);
+
+			mesh.position.x = .5;
+			mesh.position.y = .5;
+			mesh.position.z = -4;
+
+			mesh2.position.x = -2;
+			mesh2.position.y = -1;
+			mesh2.position.z = -3;
+
+			mesh3.position.x = 4;
+			mesh3.position.y = 6;
+			mesh3.position.z = -15;
+
+			scene.addUpateMethod(function(){
+				mesh.direction.x = Date.now() / 1000;
+				mesh2.direction.y = Date.now() / 2000;
+				mesh3.direction.z = Date.now() / 1500;
+				scene.addMesh(mesh);
+				scene.addMesh(mesh2);
+				scene.addMesh(mesh3);
+			});
+
+			scene.tick();
+		}
+		catch(e){
+			console.error(e);
+		}
+	</script>
+</html>
