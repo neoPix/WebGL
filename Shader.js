@@ -14,6 +14,11 @@
 		setmatrixUniform: function(pMatrix, mvMatrix){
 			this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, pMatrix);
         	this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, mvMatrix);
+
+        	var normalMatrix = mat3.create();
+			mat4.toInverseMat3(mvMatrix, normalMatrix);
+			mat3.transpose(normalMatrix);
+			this.gl.uniformMatrix3fv(this.shaderProgram.nMatrixUniform, false, normalMatrix);
 		},
 		attachShaders: function(vshader, fshader){
 			this.gl.attachShader(this.shaderProgram, vshader);
@@ -24,16 +29,37 @@
 				throw { message: "Could not initialize shaders on context", ex: null };
         	}
 
-        	this.gl.useProgram(this.shaderProgram);
+			this.gl.useProgram(this.shaderProgram);
 
-        	this.shaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
-			this.gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+			this.shaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "vertexPosition");
+			if(this.shaderProgram.vertexPositionAttribute >= 0){
+				this.gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+			}
 
-			this.shaderProgram.vertexColorAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexColor");
-        	this.gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
+			this.shaderProgram.vertexColorAttribute = this.gl.getAttribLocation(this.shaderProgram, "vertexColor");
+			if(this.shaderProgram.vertexColorAttribute >= 0){
+				this.gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
+			}
 
-			this.shaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");
-			this.shaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
+			this.shaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.shaderProgram, "textureCoord");
+			if(this.shaderProgram.textureCoordAttribute >= 0){
+				this.gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+			}
+
+			this.shaderProgram.vertexNormalAttribute = this.gl.getAttribLocation(this.shaderProgram, "vertexNormal");
+			if(this.shaderProgram.vertexNormalAttribute >= 0){
+				this.gl.enableVertexAttribArray(this.shaderProgram.vertexNormalAttribute);
+			}
+
+			this.shaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "view");
+			this.shaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "world");
+			this.shaderProgram.nMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "normal");
+
+			this.shaderProgram.colorMapSamplerUniform = this.gl.getUniformLocation(this.shaderProgram, "colorMap");
+			this.shaderProgram.normalMapSamplerUniform = this.gl.getUniformLocation(this.shaderProgram, "normalMap");
+
+			this.shaderProgram.pointLightingLocationUniform = this.gl.getUniformLocation(this.shaderProgram, "uPointLightingLocation");
+        	this.shaderProgram.pointLightingColorUniform = this.gl.getUniformLocation(this.shaderProgram, "uPointLightingColor");
 		},
 		attachShadersFromId: function(vertexShaderId, fragmentShaderId){
 			this.attachShaders(this.__getShader(vertexShaderId), this.__getShader(fragmentShaderId));

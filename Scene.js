@@ -7,6 +7,8 @@
 		this.meshs = [];
 		this._updateMethods = [];
 		this._mvMatrixStack = [];
+		this.kb = null;
+		this.ms = null;
 		this.init();
 	};
 
@@ -14,16 +16,23 @@
 		init : function(){
 			this.initGL();
 
-			this.gl.clearColor(0.0, 0, 0.0, 1.0);
-        	this.gl.enable(this.gl.DEPTH_TEST);
+			this.camera = new Camera(this.gl);
+			this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			
+			this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+            this.gl.enable(this.gl.BLEND);
+            this.gl.disable(this.gl.DEPTH_TEST);
 
-        	this.mvMatrix = mat4.create();
-    		this.pMatrix = mat4.create();
+			this.kb = c.Kb;
+			this.ms = c.Ms;
+			this.kb.bind();
+			this.ms.bind();
 		},
 		initGL: function(){
 			try{
 				this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
 				this.updateSize();
+				this.gl.enable(this.gl.CULL_FACE);
 			}
 			catch(e){
 				throw { message: "Cannot create a webGl context for this scene", ex: e };
@@ -55,28 +64,15 @@
 		update: function(){
 			var self = this;
 			this.meshs = [];
+			this.kb.update();
+			this.ms.update();
 			this._updateMethods.forEach(function(method){
 				method.apply(self);
 			});
 		},
-		mvPushMatrix: function() {
-			var copy = mat4.create();
-			mat4.set(this.mvMatrix, copy);
-			this._mvMatrixStack.push(copy);
-		},
-		mvPopMatrix: function() {
-			if (this._mvMatrixStack.length == 0) {
-				throw "Invalid popMatrix!";
-			}
-			this.mvMatrix = this._mvMatrixStack.pop();
-		},
 		draw: function(){
 			this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
 			this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-			mat4.perspective(45, this.gl.viewportWidth / this.gl.viewportHeight, 0.1, 100.0, this.pMatrix);
-			mat4.identity(this.mvMatrix);
-			mat4.translate(this.mvMatrix, [0, 0.0, -6]);
 
 			var self = this;
 			this.meshs.forEach(function(mesh){

@@ -7,32 +7,79 @@
 	<script src="Shader.js"></script>
 	<script src="Mesh.js"></script>
 	<script src="Obj.js"></script>
+	<script src="Camera.js"></script>
+	<script src="Keyboard.js"></script>
+	<script src="Mouse.js"></script>
+	<script src="Texture.js"></script>
 
 	<script id="shader-fs" type="x-shader/x-fragment">
 		precision mediump float;
 
 		varying vec4 vColor;
+		varying vec2 vTextureCoord;
+		varying vec3 vNormal;
+		varying vec4 vPosition;
+
+		uniform sampler2D colorMap;
+		uniform sampler2D normalMap;
+		uniform vec3 uPointLightingLocation;
+		uniform vec3 uPointLightingColor;
 
 		void main(void) {
-			gl_FragColor = vColor;
+			vec4 fragmentColor = texture2D(colorMap, vTextureCoord);
+			vec4 cNormal = texture2D(normalMap, vTextureCoord);
+
+			vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
+			float directionalLightWeighting = max(dot(normalize(cNormal.rgb * vNormal), lightDirection), 0.0);
+			vec3 lightWeighting = uPointLightingColor * directionalLightWeighting;
+
+			gl_FragColor = vec4(fragmentColor.rgb * lightWeighting, fragmentColor.a);
 		}
 	</script>
 
 	<script id="shader-vs" type="x-shader/x-vertex">
-		attribute vec3 aVertexPosition;
-		attribute vec4 aVertexColor;
+		attribute vec3 vertexPosition;
+		attribute vec4 vertexColor;
+		attribute vec2 textureCoord;
+		attribute vec3 vertexNormal;
 
-		uniform mat4 uMVMatrix;
-		uniform mat4 uPMatrix;
+		uniform mat4 view;
+		uniform mat4 world;
+		uniform mat3 normal;
 
 		varying vec4 vColor;
+		varying vec2 vTextureCoord;
+		varying vec3 vNormal;
+		varying vec4 vPosition;
 
 		void main(void) {
-			gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-			vColor = aVertexColor;
+			vPosition = world * vec4(vertexPosition, 1.0);
+			gl_Position = view * vPosition;
+			vColor = vertexColor;
+			vTextureCoord = textureCoord;
+			vNormal = normal * vertexNormal;
 		}
 	</script>
 
+	<script>
+		var manageCamera = function(scene){
+			if(scene.ms.b(1)){
+				var mv = scene.ms.mv();
+				mat4.rotate(scene.camera.mvMatrix, mv.y/600, [1,0,0]);
+				mat4.rotate(scene.camera.mvMatrix, mv.x/-600, [0,1,0]);
+			}
+
+			var speed = 0;
+			if(scene.kb.k(38)){
+				speed = 0.03;
+			}
+			else if(scene.kb.k(40)){
+				speed = -0.03;
+			}
+			var yaw = Math.atan(scene.camera.mvMatrix[4] / scene.camera.mvMatrix[0]);
+			mat4.translate(scene.camera.mvMatrix, [Math.sin(yaw) * speed,0, Math.cos(yaw) * speed]);
+		}
+	</script>
 
 	<script>
 		try{
@@ -40,29 +87,32 @@
 				scene = new Scene(canvas);
 
 			var shader = scene.getShaderFromId("shader-vs", "shader-fs"),
-				mesh = scene.getMesh("Objects/Pyramid.json", shader),
+				mesh = scene.getMesh("Objects/Cube.json", shader),
 				mesh2 = scene.getMesh("Objects/Pyramid.json", shader),
 				mesh3 = scene.getMesh("Objects/Pyramid.json", shader);
 
-			mesh.position.x = .5;
-			mesh.position.y = .5;
-			mesh.position.z = -4;
+			mesh.setTexture(0, "Textures/wood.jpg");
+			mesh.setTexture(1, "Textures/wood.normal.jpg");
+			mesh2.setTexture(0, "Textures/metal.jpg");
+			mesh3.setTexture(0, "Textures/wall.jpg");
 
-			mesh2.position.x = -2;
-			mesh2.position.y = -1;
-			mesh2.position.z = -3;
+			mesh2.position.x = -1.8;
+			mesh2.position.y = -1.5;
 
-			mesh3.position.x = 4;
-			mesh3.position.y = 6;
-			mesh3.position.z = -15;
+			mesh3.position.x = 1.8;
+			mesh3.position.y = 1;
 
 			scene.addUpateMethod(function(){
 				mesh.direction.x = Date.now() / 1000;
+				mesh.direction.y = Date.now() / 3600;
 				mesh2.direction.y = Date.now() / 2000;
+				mesh2.direction.x = Date.now() / 500;
 				mesh3.direction.z = Date.now() / 1500;
-				scene.addMesh(mesh);
-				scene.addMesh(mesh2);
-				scene.addMesh(mesh3);
+				this.addMesh(mesh);
+				//this.addMesh(mesh2);
+				//this.addMesh(mesh3);
+
+				manageCamera(this);
 			});
 
 			scene.tick();
