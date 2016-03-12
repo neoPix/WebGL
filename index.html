@@ -2,15 +2,8 @@
 	<body>
 		<canvas id="logo" height="600" width="600"></canvas>
 	</body>
-	<script src="glMatrix.js"></script>
-	<script src="Scene.js"></script>
-	<script src="Shader.js"></script>
-	<script src="Mesh.js"></script>
-	<script src="Obj.js"></script>
-	<script src="Camera.js"></script>
-	<script src="Keyboard.js"></script>
-	<script src="Mouse.js"></script>
-	<script src="Texture.js"></script>
+
+	<script src="libs/system.js"></script>
 
 	<script id="shader-fs" type="x-shader/x-fragment">
 		precision mediump float;
@@ -82,43 +75,51 @@
 	</script>
 
 	<script>
-		try{
-			var canvas = document.getElementById("logo"),
-				scene = new Scene(canvas);
+		System.config({
+			baseURL: './dist',
+			"defaultJSExtensions": true,
+			map: {
+		    	glMatrix: '/libs/glMatrix.js'
+		  	}
+		});
+		System.import('Scene.js').then(function(Scene){
+			try {
+				var canvas = document.getElementById("logo"),
+					scene = new Scene.Scene(canvas);
 
-			var shader = scene.getShaderFromId("shader-vs", "shader-fs"),
-				mesh = scene.getMesh("Objects/Cube.json", shader),
-				mesh2 = scene.getMesh("Objects/Pyramid.json", shader),
-				mesh3 = scene.getMesh("Objects/Pyramid.json", shader);
+				var shader = scene.getShaderFromId("shader-vs", "shader-fs"),
+					mesh = scene.getMesh("Objects/Cube.json", shader),
+					mesh2 = scene.getMesh("Objects/Pyramid.json", shader),
+					mesh3 = scene.getMesh("Objects/Pyramid.json", shader);
 
-			mesh.setTexture(0, "Textures/wood.jpg");
-			mesh.setTexture(1, "Textures/wood.normal.jpg");
-			mesh2.setTexture(0, "Textures/metal.jpg");
-			mesh3.setTexture(0, "Textures/wall.jpg");
+				mesh.setTexture(0, "Textures/wood.jpg");
+				mesh.setTexture(1, "Textures/wood.normal.jpg");
+				mesh2.setTexture(0, "Textures/metal.jpg");
+				mesh3.setTexture(0, "Textures/wall.jpg");
 
-			mesh2.position.x = -1.8;
-			mesh2.position.y = -1.5;
+				mesh2.position.x = -1.8;
+				mesh2.position.y = -1.5;
 
-			mesh3.position.x = 1.8;
-			mesh3.position.y = 1;
+				mesh3.position.x = 1.8;
+				mesh3.position.y = 1;
 
-			scene.addUpateMethod(function(){
-				mesh.direction.x = Date.now() / 1000;
-				mesh.direction.y = Date.now() / 3600;
-				mesh2.direction.y = Date.now() / 2000;
-				mesh2.direction.x = Date.now() / 500;
-				mesh3.direction.z = Date.now() / 1500;
-				this.addMesh(mesh);
-				this.addMesh(mesh2);
-				this.addMesh(mesh3);
+				scene.addUpateMethod(function(){
+					mesh.direction.x = Date.now() / 1000;
+					mesh.direction.y = Date.now() / 3600;
+					mesh2.direction.y = Date.now() / 2000;
+					mesh2.direction.x = Date.now() / 500;
+					mesh3.direction.z = Date.now() / 1500;
+					this.addMesh(mesh);
+					this.addMesh(mesh2);
+					this.addMesh(mesh3);
 
-				manageCamera(this);
-			});
+					manageCamera(this);
+				});
 
-			scene.tick();
-		}
-		catch(e){
-			console.error(e);
-		}
+				scene.tick();
+			} catch (e) {
+				console.error(e);
+			}
+		});
 	</script>
 </html>
