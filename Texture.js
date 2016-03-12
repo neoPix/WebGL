@@ -1,13 +1,12 @@
 (function(c){
 	c = c || this;
 
-	var Texture = function(gl){
-		this.gl = gl;
-		this.texture = null;
-	};
-
-	Texture.prototype = {
-		load: function(texture, reverse){
+	class Texture{
+		constructor(gl){
+			this.gl = gl;
+			this.texture = null;
+		}
+		load(texture, reverse){
 			this.texture = texture;
 			this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 			if(reverse)this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -17,14 +16,13 @@
 			this.gl.generateMipmap(this.gl.TEXTURE_2D);
 			this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 		}
-	};
+	}
 
-	var TextureCache = function(){
-		this.loadedTextures = {};
-	};
-
-	TextureCache.prototype = {
-		get: function(path, gl){
+	class TextureCache{
+		constructor(){
+			this.loadedTextures = {};
+		}
+		get(path, gl){
 			var self = this;
 			return new Promise(function(resolve, reject){
 				if(self.loadedTextures[path]){
@@ -41,7 +39,7 @@
 				t.image.src = path;
 			});
 		}
-	};
+	}
 
 	c.Texture = Texture;
 	c.Texs = new TextureCache();

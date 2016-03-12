@@ -1,16 +1,15 @@
 (function(c){
 	c = c || this;
 
-	var Obj = function(gl){
-		this.gl = gl;
-		this.vertexBuffer = null;
-		this.colorBuffer = null;
-		this.texCordBuffer = null;
-		this.vertexNormalBuffer = null;
-	};
-
-	Obj.prototype = {
-		load: function(data){
+	class Obj{
+		constructor(gl){
+			this.gl = gl;
+			this.vertexBuffer = null;
+			this.colorBuffer = null;
+			this.texCordBuffer = null;
+			this.vertexNormalBuffer = null;
+		}
+		load(data){
 			if(data.vertexPositions){
 				this.vertexBuffer = this.gl.createBuffer();
 				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -40,14 +39,13 @@
 				this.vertexNormalBuffer.numItems = data.vertexNormals.length / 3;
 			}
 		}
-	};
+	}
 
-	var ObjCache = function(){
-		this.loadedObjects = {};
-	};
-
-	ObjCache.prototype = {
-		get: function(path, gl){
+	class ObjCache{
+		constructor(){
+			this.loadedObjects = {};
+		}
+		get(path, gl){
 			var self = this;
 			return new Promise(function(resolve, reject){
 				if(self.loadedObjects[path]){
@@ -67,7 +65,7 @@
 				request.send();
 			});
 		}
-	};
+	}
 
 	c.Obj = Obj;
 	c.Objs = new ObjCache();

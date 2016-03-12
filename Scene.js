@@ -1,24 +1,23 @@
 (function(c){
 	c = c || this;
 
-	var Scene = function(canvas){
-		this.canvas = canvas;
-		this.gl = null;
-		this.meshs = [];
-		this._updateMethods = [];
-		this._mvMatrixStack = [];
-		this.kb = null;
-		this.ms = null;
-		this.init();
-	};
-
-	Scene.prototype = {
-		init : function(){
+	class Scene{
+		constructor(canvas){
+			this.canvas = canvas;
+			this.gl = null;
+			this.meshs = [];
+			this._updateMethods = [];
+			this._mvMatrixStack = [];
+			this.kb = null;
+			this.ms = null;
+			this.init();
+		}
+		init(){
 			this.initGL();
 
 			this.camera = new Camera(this.gl);
 			this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-			
+
 			this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
             this.gl.enable(this.gl.BLEND);
             this.gl.disable(this.gl.DEPTH_TEST);
@@ -27,8 +26,8 @@
 			this.ms = c.Ms;
 			this.kb.bind();
 			this.ms.bind();
-		},
-		initGL: function(){
+		}
+		initGL(){
 			try{
 				this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
 				this.updateSize();
@@ -37,31 +36,31 @@
 			catch(e){
 				throw { message: "Cannot create a webGl context for this scene", ex: e };
 			}
-		},
-		getMesh: function(path, shader){
+		}
+		getMesh(path, shader){
 			return new Mesh(this.gl, path, shader);
-		},
-		getShaderFromId: function(vertexShader, fragmentShader){
+		}
+		getShaderFromId(vertexShader, fragmentShader){
 			var shader = new Shader(this.gl);
 			shader.attachShadersFromId(vertexShader, fragmentShader);
 			return shader;
-		},
-		addMesh: function(mesh){
+		}
+		addMesh(mesh){
 			this.meshs.push(mesh);
-		},
-		updateSize: function(){
+		}
+		updateSize(){
 			this.gl.viewportWidth = this.canvas.width;
 			this.gl.viewportHeight = this.canvas.height;
-		},
-		addUpateMethod: function(method){
+		}
+		addUpateMethod(method){
 			this._updateMethods.push(method);
-		},
-		removeUpateMethod: function(method){
+		}
+		removeUpateMethod(method){
 			var pos = this._updateMethods.indexOf(method);
 			if(pos >= 0)
 				this._updateMethods.splice(pos, 1);
-		},
-		update: function(){
+		}
+		update(){
 			var self = this;
 			this.meshs = [];
 			this.kb.update();
@@ -69,8 +68,8 @@
 			this._updateMethods.forEach(function(method){
 				method.apply(self);
 			});
-		},
-		draw: function(){
+		}
+		draw(){
 			this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
 			this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -78,15 +77,15 @@
 			this.meshs.forEach(function(mesh){
 				mesh.render(self);
 			});
-		},
-		tick: function(){
+		}
+		tick(){
 			if(!this.__paused){
 				window.requestAnimationFrame(this.tick.bind(this));
 				this.update();
 				this.draw();
 			}
 		}
-	};
+	}
 
 	c.Scene = Scene;
 

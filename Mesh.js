@@ -1,31 +1,30 @@
 (function(c){
 	c = c || this;
 
-	var Mesh = function(gl, path, shader){
-		this.gl = gl;
-		this.object = null;
-		this.shader = shader;
-		this.position = {x: 0, y: 0, z: 0};
-		this.direction = {x: 0, y: 0, z: 0};
-		this.textures = {};
-		this.init(path);
-	};
-
-	Mesh.prototype = {
-		init: function(path){
+	class Mesh{
+		constructor(gl, path, shader){
+			this.gl = gl;
+			this.object = null;
+			this.shader = shader;
+			this.position = {x: 0, y: 0, z: 0};
+			this.direction = {x: 0, y: 0, z: 0};
+			this.textures = {};
+			this.init(path);
+		}
+		init(path){
 			var self = this;
 			c.Objs.get(path, this.gl).then(function(obj){
 				self.object = obj;
 			});
 			this.setTexture(0, "Textures/white.png");
-		},
-		setTexture: function(number, path){
+		}
+		setTexture(number, path){
 			var self = this;
 			c.Texs.get(path, this.gl).then(function(texture){
 				self.textures[number] = texture;
 			});
-		},
-		render: function(scene){
+		}
+		render(scene){
 			scene.camera.mvPushMatrix();
 
 			var meshMatrix = mat4.create();
@@ -41,7 +40,7 @@
 			if(this.object && this.object.vertexBuffer && this.shader.shaderProgram.vertexPositionAttribute >= 0){
 				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.object.vertexBuffer);
 				this.gl.vertexAttribPointer(this.shader.shaderProgram.vertexPositionAttribute, this.object.vertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-				
+
 				if(this.object.colorBuffer && this.shader.shaderProgram.vertexColorAttribute >= 0){
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.object.colorBuffer);
 					this.gl.vertexAttribPointer(this.shader.shaderProgram.vertexColorAttribute, this.object.colorBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
@@ -57,13 +56,13 @@
 					this.gl.vertexAttribPointer(this.shader.shaderProgram.vertexNormalAttribute, this.object.vertexNormalBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 				}
 
-				for(index in this.textures){
+				for(var index in this.textures){
 					this.gl.activeTexture(this.gl['TEXTURE'+index]);
 					this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[index].texture);
 				}
 				this.gl.uniform1i(this.shader.shaderProgram.colorMapSamplerUniform, 0);
 				this.gl.uniform1i(this.shader.shaderProgram.normalMapSamplerUniform, 1);
-				
+
 				this.gl.uniform3f(this.shader.shaderProgram.pointLightingLocationUniform, 0, 0, 1.5);
 				this.gl.uniform3f(this.shader.shaderProgram.pointLightingColorUniform, 1, 1, 1);
 
@@ -72,7 +71,7 @@
 			}
 			scene.camera.mvPopMatrix();
 		}
-	};
+	}
 
 	c.Mesh = Mesh;
 

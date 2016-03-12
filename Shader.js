@@ -1,17 +1,50 @@
 (function(c){
 	c = c || this;
 
-	var Shader = function(gl){
-		this.gl = gl;
-		this.shaderProgram = null;
-		this.init();
-	};
+	const getShader = function(id){
+		var shaderScript = document.getElementById(id);
+		if (!shaderScript) {
+			throw { message: "Could not locate shader with id : " + id, ex: null };
+		}
 
-	Shader.prototype = {
-		init : function(){
+		var str = "";
+		var k = shaderScript.firstChild;
+		while (k) {
+			if (k.nodeType == 3) {
+				str += k.textContent;
+			}
+			k = k.nextSibling;
+		}
+
+		var shader;
+		if (shaderScript.type == "x-shader/x-fragment") {
+			shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+		} else if (shaderScript.type == "x-shader/x-vertex") {
+			shader = this.gl.createShader(this.gl.VERTEX_SHADER);
+		} else {
+			throw { message: "Could not define the shader type", ex: null };
+		}
+
+		this.gl.shaderSource(shader, str);
+		this.gl.compileShader(shader);
+
+		if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+			throw { message: "Could not compile shader", ex: this.gl.getShaderInfoLog(shader) };
+		}
+
+		return shader;
+	}
+
+	class Shader{
+		constructor(gl){
+			this.gl = gl;
+			this.shaderProgram = null;
+			this.init();
+		}
+		init(){
 			this.shaderProgram = this.gl.createProgram();
-		},
-		setmatrixUniform: function(pMatrix, mvMatrix){
+		}
+		setmatrixUniform(pMatrix, mvMatrix){
 			this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, pMatrix);
         	this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, mvMatrix);
 
@@ -19,8 +52,8 @@
 			mat4.toInverseMat3(mvMatrix, normalMatrix);
 			mat3.transpose(normalMatrix);
 			this.gl.uniformMatrix3fv(this.shaderProgram.nMatrixUniform, false, normalMatrix);
-		},
-		attachShaders: function(vshader, fshader){
+		}
+		attachShaders(vshader, fshader){
 			this.gl.attachShader(this.shaderProgram, vshader);
 			this.gl.attachShader(this.shaderProgram, fshader);
 			this.gl.linkProgram(this.shaderProgram);
@@ -60,45 +93,11 @@
 
 			this.shaderProgram.pointLightingLocationUniform = this.gl.getUniformLocation(this.shaderProgram, "uPointLightingLocation");
         	this.shaderProgram.pointLightingColorUniform = this.gl.getUniformLocation(this.shaderProgram, "uPointLightingColor");
-		},
-		attachShadersFromId: function(vertexShaderId, fragmentShaderId){
-			this.attachShaders(this.__getShader(vertexShaderId), this.__getShader(fragmentShaderId));
-		},
-		__getShader: function(id){
-			var shaderScript = document.getElementById(id);
-			if (!shaderScript) {
-				throw { message: "Could not locate shader with id : " + id, ex: null };
-			}
-
-			var str = "";
-			var k = shaderScript.firstChild;
-			while (k) {
-				if (k.nodeType == 3) {
-					str += k.textContent;
-				}
-				k = k.nextSibling;
-			}
-
-			var shader;
-			if (shaderScript.type == "x-shader/x-fragment") {
-				shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-			} else if (shaderScript.type == "x-shader/x-vertex") {
-				shader = this.gl.createShader(this.gl.VERTEX_SHADER);
-			} else {
-				throw { message: "Could not define the shader type", ex: null };
-			}
-
-			this.gl.shaderSource(shader, str);
-			this.gl.compileShader(shader);
-
-			if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-				throw { message: "Could not compile shader", ex: this.gl.getShaderInfoLog(shader) };
-			}
-
-			return shader;
 		}
-	};
-
+		attachShadersFromId(vertexShaderId, fragmentShaderId){
+			this.attachShaders(getShader.apply(this, [vertexShaderId]), getShader.apply(this, [fragmentShaderId]));
+		}
+	}
 	c.Shader = Shader;
 
 })(window)
